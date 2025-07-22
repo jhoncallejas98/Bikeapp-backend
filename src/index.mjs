@@ -1,9 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import dbConnect from './config/mongo.config.mjs';
-import bikeRouter from './routes/bike.route.mjs';
-import bookRouter from './routes/book.route.mjs';
-import stationRouter from './routes/station.route.mjs';
+import estacionesRouter from './routes/estaciones.route.mjs';
+import bicicletasRouter from './routes/bicicletas.route.mjs';
+import alquilarRouter from './routes/alquilar.route.mjs';
+import devolverRouter from './routes/devolver.route.mjs';
 // import todayRouter from './routes/today.routes.js';
 
 const app = express();
@@ -19,9 +20,10 @@ app.use(cors()); // Usamos cors para permitir peticiones desde el frontend
 // app.use(todayRouter);
 //invocar la cofiguracion de la conexion a la base de datos. 
 dbConnect();
-app.use(bikeRouter);
-app.use(bookRouter);
-app.use(stationRouter);
+app.use(estacionesRouter);
+app.use(bicicletasRouter);
+app.use(alquilarRouter);
+app.use(devolverRouter);
 
 
 // Paso 4: Lanzar el servidor web en el puerto 3000

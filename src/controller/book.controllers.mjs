@@ -7,7 +7,7 @@ import stationModel from "../schemas/station.schemas.mjs";
 
 const createBook = async (req, res) => {
     try {
-        const { user, bike: bikeId, stationSalida, fechaInicio } = req.body;
+        const { user, bike: bikeId, stationSalida, fechaInicio, horaInicio } = req.body;
         // Buscar la bicicleta por ID
         const bike = await bikesModel.findById(bikeId);
         if (!bike) {
@@ -33,6 +33,7 @@ const createBook = async (req, res) => {
             bike: bikeId,
             stationSalida,
             fechaInicio,
+            horaInicio,
             activo: true
         });
         // Cambiar estado de la bici y restar una disponible en la estación
@@ -106,5 +107,39 @@ const removeBookById = async (req, res) => {
     }
 };
 
+const devolverBook = async (req, res) => {
+    try {
+        const { alquilerId, stationId } = req.body;
+        // Buscar el alquiler activo
+        const alquiler = await booksModel.findById(alquilerId);
+        if (!alquiler || !alquiler.activo) {
+            return res.status(404).json({ msg: "Alquiler no encontrado o ya finalizado" });
+        }
+        // Buscar la bicicleta
+        const bike = await bikesModel.findById(alquiler.bike);
+        if (!bike) {
+            return res.status(404).json({ msg: "Bicicleta no encontrada" });
+        }
+        // Cambiar estado de la bici a 'disponible'
+        bike.status = 'disponible';
+        await bike.save();
+        // Sumar una bicicleta disponible en la estación destino
+        const station = await stationModel.findById(stationId);
+        if (!station) {
+            return res.status(404).json({ msg: "Estación destino no encontrada" });
+        }
+        station.availableBikes += 1;
+        await station.save();
+        // Finalizar el alquiler
+        alquiler.fechaFin = new Date();
+        alquiler.activo = false;
+        await alquiler.save();
+        res.json({ msg: "Bicicleta devuelta correctamente" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: "Error al devolver bicicleta" });
+    }
+};
 
-export { createBook, getAllBooks, getBooksById, updateBookById, removeBookById };
+
+export { createBook, getAllBooks, getBooksById, updateBookById, removeBookById, devolverBook };

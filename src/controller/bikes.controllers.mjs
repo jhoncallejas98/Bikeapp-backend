@@ -16,7 +16,9 @@ const createBike = async (req, res) => {
 
 const getAllBikes = async (req, res) => {
     try {
-        const data = await bikesModel.find({});
+        const estado = req.query.estado;
+        const filtro = estado ? { status: estado } : {};
+        const data = await bikesModel.find(filtro);
         res.json(data);
     } catch (error) {
         console.error(error);
