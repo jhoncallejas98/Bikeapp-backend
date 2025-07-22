@@ -1,4 +1,4 @@
-import booksModel from "../schemas/books.schemas.mjs";
+import booksModel from "../schemas/book.schemas.mjs";
 
 
 // crear una nueva reserva.

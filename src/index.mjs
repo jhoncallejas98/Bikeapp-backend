@@ -12,12 +12,6 @@ const PORT = process.env.PORT ?? 3001;
 app.use(express.json());
 app.use(cors()); // Usamos cors para permitir peticiones desde el frontend
 
-// Configuración de la ruta para el frontend
-
-
-
-
-
 
 
 //invocar la cofiguracion de la conexion a la base de datos. 
