@@ -3,9 +3,10 @@ import bikesModel from "../schemas/bikes.schemas.mjs";
 // crear una nueva estacion.
 
 const createBike = async (req, res) => {
+    res.json(req.body)
     try {
         const inputData = req.body;
-        const newStation = await stationModel.create(inputData);
+        const newBike = await bikesModel.create(inputData);
         res.status(201).json(newBike);
     } catch (error) {
         console.error(error);
