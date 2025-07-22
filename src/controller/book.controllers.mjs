@@ -1,4 +1,5 @@
 import booksModel from "../schemas/book.schemas.mjs";
+import bikesModel from "../schemas/bikes.schemas.mjs";
 
 
 // crear una nueva reserva.
@@ -6,6 +7,20 @@ import booksModel from "../schemas/book.schemas.mjs";
 const createBook = async (req, res) => {
     try {
         const inputData = req.body;
+        // Buscar la bicicleta por ID
+        const bike = await bikesModel.findById(inputData.bike);
+        if (!bike) {
+            return res.status(404).json({ msg: "Bicicleta no encontrada" });
+        }
+        // Validar disponibilidad
+        if (bike.availableBikes <= 0) {
+            return res.status(400).json({ msg: "No hay bicicletas disponibles para alquilar" });
+        }
+        // Validar estado
+        if (bike.status === 'en mantenimiento') {
+            return res.status(400).json({ msg: "No se puede alquilar una bicicleta en mantenimiento" });
+        }
+        // Si pasa las validaciones, crear la reserva
         const newBook = await booksModel.create(inputData);
         res.status(201).json(newBook);
     } catch (error) {

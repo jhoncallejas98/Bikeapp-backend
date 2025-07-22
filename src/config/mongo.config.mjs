@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 
 async function dbConnect() {
     try {
-        // URL de MongoDB Atlas
-        const mongoUrl = "mongodb://localhost:27017/bikeapp"; // Reemplaza con tu URL de conexión a MongoDB Atlas
+        // Usar variable de entorno si existe
+        const mongoUrl = process.env.MONGODB_URI || "mongodb://localhost:27017/bikeapp";
         
         console.log('Intentando conectar a MongoDB Atlas...');
         console.log('URL de conexión:', mongoUrl.replace(/\/\/.*@/, '//***:***@')); // Ocultar credenciales en logs
