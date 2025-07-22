@@ -1,27 +1,46 @@
 import booksModel from "../schemas/book.schemas.mjs";
 import bikesModel from "../schemas/bikes.schemas.mjs";
+import stationModel from "../schemas/station.schemas.mjs";
 
 
 // crear una nueva reserva.
 
 const createBook = async (req, res) => {
     try {
-        const inputData = req.body;
+        const { user, bike: bikeId, stationSalida, fechaInicio } = req.body;
         // Buscar la bicicleta por ID
-        const bike = await bikesModel.findById(inputData.bike);
+        const bike = await bikesModel.findById(bikeId);
         if (!bike) {
             return res.status(404).json({ msg: "Bicicleta no encontrada" });
         }
-        // Validar disponibilidad
-        if (bike.availableBikes <= 0) {
-            return res.status(400).json({ msg: "No hay bicicletas disponibles para alquilar" });
-        }
-        // Validar estado
         if (bike.status === 'en mantenimiento') {
             return res.status(400).json({ msg: "No se puede alquilar una bicicleta en mantenimiento" });
         }
-        // Si pasa las validaciones, crear la reserva
-        const newBook = await booksModel.create(inputData);
+        if (bike.status !== 'disponible' || bike.availableBikes <= 0) {
+            return res.status(400).json({ msg: "No hay bicicletas disponibles para alquilar" });
+        }
+        // Buscar la estación por ID
+        const station = await stationModel.findById(stationSalida);
+        if (!station) {
+            return res.status(404).json({ msg: "Estación no encontrada" });
+        }
+        if (station.availableBikes <= 0) {
+            return res.status(400).json({ msg: "No hay bicicletas disponibles en la estación" });
+        }
+        // Crear la reserva conectando los IDs
+        const newBook = await booksModel.create({
+            user,
+            bike: bikeId,
+            stationSalida,
+            fechaInicio,
+            activo: true
+        });
+        // Cambiar estado de la bici y restar una disponible en la estación
+        bike.status = 'en uso';
+        bike.availableBikes -= 1;
+        await bike.save();
+        station.availableBikes -= 1;
+        await station.save();
         res.status(201).json(newBook);
     } catch (error) {
         console.error(error);
@@ -31,7 +50,10 @@ const createBook = async (req, res) => {
 
 const getAllBooks = async (req, res) => {
     try {
-        const data = await booksModel.find({});
+        const data = await booksModel
+            .find({})
+            .populate('bike')
+            .populate('stationSalida');
         res.json(data);
     } catch (error) {
         console.error(error);

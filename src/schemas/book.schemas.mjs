@@ -8,8 +8,17 @@ const bookSchema = new mongoose.Schema({
     },
     bike: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Bike',
+        ref: 'bikes',
         required: true
+    },
+    stationSalida: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'stations',
+        required: true
+    },
+    fechaInicio: {
+        type: Date,
+        required: [true, "es obligatorio que se ponga la fecha de inicio"]
     },
     horaInicio: {
         type: String,                            // formato 'HH:mm'
