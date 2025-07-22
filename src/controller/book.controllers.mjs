@@ -13,21 +13,14 @@ const createBook = async (req, res) => {
         if (!bike) {
             return res.status(404).json({ msg: "Bicicleta no encontrada" });
         }
-        if (bike.status === 'en mantenimiento') {
-            return res.status(400).json({ msg: "No se puede alquilar una bicicleta en mantenimiento" });
+        if (bike.status !== 'disponible') {
+            return res.status(400).json({ msg: "La bicicleta no está disponible" });
         }
-        if (bike.status !== 'disponible' || bike.availableBikes <= 0) {
-            return res.status(400).json({ msg: "No hay bicicletas disponibles para alquilar" });
-        }
-        // Buscar la estación por ID
-        const station = await stationModel.findById(stationSalida);
-        if (!station) {
-            return res.status(404).json({ msg: "Estación no encontrada" });
-        }
-        if (station.availableBikes <= 0) {
-            return res.status(400).json({ msg: "No hay bicicletas disponibles en la estación" });
-        }
-        // Crear la reserva conectando los IDs
+        // Cambiar estado de la bici a 'en uso'
+        bike.status = 'en uso';
+        await bike.save();
+
+        // Crear la reserva
         const newBook = await booksModel.create({
             user,
             bike: bikeId,
@@ -36,12 +29,7 @@ const createBook = async (req, res) => {
             horaInicio,
             activo: true
         });
-        // Cambiar estado de la bici y restar una disponible en la estación
-        bike.status = 'en uso';
-        bike.availableBikes -= 1;
-        await bike.save();
-        station.availableBikes -= 1;
-        await station.save();
+
         res.status(201).json(newBook);
     } catch (error) {
         console.error(error);
@@ -109,7 +97,7 @@ const removeBookById = async (req, res) => {
 
 const devolverBook = async (req, res) => {
     try {
-        const { alquilerId, stationId } = req.body;
+        const { alquilerId } = req.body;
         // Buscar el alquiler activo
         const alquiler = await booksModel.findById(alquilerId);
         if (!alquiler || !alquiler.activo) {
@@ -123,16 +111,9 @@ const devolverBook = async (req, res) => {
         // Cambiar estado de la bici a 'disponible'
         bike.status = 'disponible';
         await bike.save();
-        // Sumar una bicicleta disponible en la estación destino
-        const station = await stationModel.findById(stationId);
-        if (!station) {
-            return res.status(404).json({ msg: "Estación destino no encontrada" });
-        }
-        station.availableBikes += 1;
-        await station.save();
         // Finalizar el alquiler
-        alquiler.fechaFin = new Date();
         alquiler.activo = false;
+        alquiler.fechaFin = new Date();
         await alquiler.save();
         res.json({ msg: "Bicicleta devuelta correctamente" });
     } catch (error) {

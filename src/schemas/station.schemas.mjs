@@ -13,12 +13,7 @@ const stationSchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 1
-    },
-    availableBikes: {
-        type: Number,
-        required: true,
-        min: 0
-    },
+    }
 }, { timestamps: true, versionKey: false });
 
 const stationModel = mongoose.model('stations', stationSchema);

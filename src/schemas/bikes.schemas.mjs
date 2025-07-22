@@ -10,16 +10,11 @@ const bikesSchema = new mongoose.Schema({
         enum: ['disponible', 'en uso', 'en mantenimiento'],
         default: 'disponible'
     },
-    capacity: {
-        type: Number,
-        required: true,
-        min: 1
-    },
-    availableBikes: {
-        type: Number,
-        required: true,
-        min: 0
-    },
+    stationId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'stations',
+        required: true
+    }
 }, { timestamps: true, versionKey: false });
 
 const bikesModel = mongoose.model('bikes', bikesSchema);

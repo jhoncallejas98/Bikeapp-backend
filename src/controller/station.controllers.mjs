@@ -1,4 +1,5 @@
 import stationModel from "../schemas/station.schemas.mjs";
+import bikesModel from "../schemas/bikes.schemas.mjs";
 
 // crear una nueva estacion.
 
@@ -15,8 +16,16 @@ const createStation = async (req, res) => {
 
 const getAllStations = async (req, res) => {
     try {
-        const data = await stationModel.find({});
-        res.json(data);
+        const stations = await stationModel.find({});
+        // Para cada estación, buscar las bicicletas disponibles asociadas
+        const stationsWithBikes = await Promise.all(stations.map(async (station) => {
+            const bikes = await bikesModel.find({ stationId: station._id, status: 'disponible' });
+            return {
+                ...station.toObject(),
+                bikes
+            };
+        }));
+        res.json(stationsWithBikes);
     } catch (error) {
         console.error(error);
         res.status(500).json({ msg: "Error al obtener las estaciones" });
@@ -26,14 +35,17 @@ const getAllStations = async (req, res) => {
 const getTodayStationById = async (req, res) => {
     try {
         const id = req.params.id;
-        const station = await stationModel.findById(id);
+        const station = await stationModel.findById(id).lean();
         if (!station) {
             return res.status(404).json({ msg: "Estación no encontrada" });
         }
+        // Busca las bicis asociadas a la estación
+        const bikes = await bikesModel.find({ stationId: id });
+        station.bikes = bikes;
         res.json(station);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ msg: "Error al obtener estación de hoy" });
+        res.status(500).json({ msg: "Error al obtener estación" });
     }
 };
 
